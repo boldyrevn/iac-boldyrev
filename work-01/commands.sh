@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 export PREFIX=Boldyrev-04
 export ZONE=ru-central1-a
 export CIDR=10.14.1.0/24
