@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-export PREFIX=Boldyrev-04
+export PREFIX=boldyrev-04
 export ZONE=ru-central1-a
 export CIDR=10.14.1.0/24
 export DISK_SIZE=15           
-vpc network create --name "$PREFIX-net"
-vpc subnet create \
+yc vpc network create --name "$PREFIX-net"
+yc vpc subnet create \
   --name "$PREFIX-subnet" \
   --network-name "$PREFIX-net" \
   --zone "$ZONE" \
