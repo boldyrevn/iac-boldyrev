@@ -1,0 +1,32 @@
+#cloud-config
+
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ${SSH_KEY}
+
+package_update: true
+
+packages:
+  - nginx
+
+runcmd:
+  - sed -i 's/listen 80 default_server;/listen ${APP_PORT} default_server;/' /etc/nginx/sites-available/default
+  - sed -i 's/listen \[::\]:80 default_server;/listen [::]:${APP_PORT} default_server;/' /etc/nginx/sites-available/default
+  - bash -c 'echo "${GREETING} on $(hostname)" > /var/www/html/index.nginx-debian.html'
+  - nginx -t
+  - systemctl restart nginx
+  # Только у первой ВМ есть дополнительный диск.
+  - |
+    if [ -b /dev/disk/by-id/virtio-data ]; then
+      if ! blkid -p /dev/disk/by-id/virtio-data >/dev/null 2>&1; then
+        mkfs.ext4 -F /dev/disk/by-id/virtio-data
+      fi
+      mkdir -p /mnt/data
+      grep -q '^/dev/disk/by-id/virtio-data ' /etc/fstab ||
+        printf '%s\n' '/dev/disk/by-id/virtio-data /mnt/data ext4 defaults,nofail 0 2' >> /etc/fstab
+      mountpoint -q /mnt/data || mount /mnt/data
+    fi
