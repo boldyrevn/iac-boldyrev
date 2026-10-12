@@ -1,0 +1,15 @@
+default:
+  tags:
+    - boldyrev-04
+
+stages:
+  - proverka
+
+shellcheck:
+  stage: proverka
+  image: koalaman/shellcheck-alpine:stable
+  script:
+    - echo "Вариант 04, слово devlab"
+    - shellcheck --version
+    - find . -name '*.sh' -print
+    - find . -name '*.sh' -exec shellcheck {} +
