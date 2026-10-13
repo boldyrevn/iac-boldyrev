@@ -30,7 +30,7 @@ echo "==> проверка распределения запросов"
 if [[ -n "${LB_IP:-}" ]]; then
   RESPONSES=""
 
-  for i in {1..20}; do
+  for ((i=0; i<20; i++)); do
     RESPONSE=$(curl -s --connect-timeout 5 --max-time 10 \
       "http://$LB_IP" || true)
 

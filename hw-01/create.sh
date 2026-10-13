@@ -27,6 +27,8 @@ trap 'rm -f "$CLOUD_INIT"; rmdir "$TEMP_DIR"' EXIT
 SSH_KEY=$(cat "$HOME/.ssh/id_ed25519.pub")
 
 echo "==> файл настройки из шаблона"
+# Передаём envsubst буквальные имена переменных для подстановки в шаблоне.
+# shellcheck disable=SC2016
 APP_PORT="$APP_PORT" \
 GREETING="$GREETING" \
 SSH_KEY="$SSH_KEY" \
@@ -148,7 +150,7 @@ echo "==> целевая группа"
 if yc load-balancer target-group get --name "$PREFIX-tg" >/dev/null 2>&1; then
   echo "Целевая группа $PREFIX-tg уже существует, пропускаю"
 else
-  TARGETS=""
+  TARGETS=()
 
   for i in $(seq 1 "$VM_COUNT"); do
     idx=$(( (i - 1) % 2 ))
@@ -156,13 +158,13 @@ else
     IP=$(yc compute instance get --name "$PREFIX-web-$i" --format json \
       | jq -r '.network_interfaces[0].primary_v4_address.address')
 
-    TARGETS="$TARGETS --target subnet-name=${SUBNETS[$idx]},address=$IP"
+    TARGETS+=(--target "subnet-name=${SUBNETS[$idx]},address=$IP")
   done
 
   yc load-balancer target-group create \
     --name "$PREFIX-tg" \
     --labels "$LABELS" \
-    $TARGETS
+    "${TARGETS[@]}"
 fi
 
 echo "==> балансировщик"
