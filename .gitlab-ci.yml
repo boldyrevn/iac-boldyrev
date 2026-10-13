@@ -8,11 +8,26 @@ stages:
 shellcheck:
   stage: proverka
   image: koalaman/shellcheck-alpine:stable
+  rules:
+    # Проверяем изменения скриптов и CI в push-пайплайне.
+    # Изменения только документации не запускают задачу.
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - "**/*.sh"
+        - .gitlab-ci.yml
   script:
     - echo "Вариант 04, слово devlab"
     - shellcheck --version
     - find . -name '*.sh' -print
     - find . -name '*.sh' -exec shellcheck {} +
+
+yamllint:
+  stage: proverka
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache yamllint
+  script:
+    - yamllint -d relaxed work-02/cloud-init.tpl.yaml
 
 .yc:
   image: alpine:3.20
@@ -33,4 +48,3 @@ proverka-dostupa:
   script:
     - echo "Проверяю доступ, вариант 04, слово devlab"   # у вас — свои
     - yc vpc network list
-
