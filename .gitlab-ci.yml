@@ -13,3 +13,24 @@ shellcheck:
     - shellcheck --version
     - find . -name '*.sh' -print
     - find . -name '*.sh' -exec shellcheck {} +
+
+.yc:
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache bash curl jq gettext openssh-keygen >/dev/null
+    - curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a -i /usr/local >/dev/null
+    - export PATH=/usr/local/bin:$PATH
+    - yc config profile create ci
+    - yc config set service-account-key "$YC_KEY_STAGE"   # у вас — суффикс своего окружения
+    - yc config set cloud-id "$YC_CLOUD_ID"
+    - yc config set folder-id "$YC_FOLDER_ID"
+
+# ручная задача: запускается кнопкой, ресурсов не создаёт
+proverka-dostupa:
+  extends: .yc
+  stage: proverka
+  when: manual
+  script:
+    - echo "Проверяю доступ, вариант 04, слово devlab"   # у вас — свои
+    - yc vpc network list
+
